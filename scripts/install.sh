@@ -1,6 +1,6 @@
 #!/bin/sh
 random() {
-	tr </dev/urandom -dc A-Za-z0-9 | head -c5
+	tr </dev/urandom -dc A-Za-z0-9 | head -c15
 	echo
 }
 
@@ -146,7 +146,7 @@ bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-zip ${WORKDIR}/proxy.zip ${WORKDATA}
+zip ${WORKDIR}/proxy.zip proxy.txt
 echo "Done! ${WORKDATA}"
 
 #upload_proxy
