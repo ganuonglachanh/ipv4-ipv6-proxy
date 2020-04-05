@@ -1,6 +1,6 @@
 #!/bin/sh
 random() {
-	tr </dev/urandom -dc A-Za-z0-9 | head -c5
+	tr </dev/urandom -dc A-Za-z0-9 | head -c15
 	echo
 }
 
@@ -13,9 +13,9 @@ gen64() {
 }
 install_3proxy() {
     echo "installing 3proxy"
-    URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
+    URL="https://github.com/z3APA3A/3proxy/archive/0.8.13.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
-    cd 3proxy-3proxy-0.8.6
+    cd 3proxy-0.8.13
     make -f Makefile.Linux
     mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
     cp src/3proxy /usr/local/etc/3proxy/bin/
@@ -28,11 +28,13 @@ install_3proxy() {
 gen_3proxy() {
     cat <<EOF
 daemon
-maxconn 1000
+maxconn 500
 nscache 65536
+nscache6 65536
 timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
+stacksize 262144
 flush
 auth strong
 
@@ -75,22 +77,23 @@ EOF
 
 gen_ifconfig() {
     cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
+$(awk -F "/" '{print "ifconfig '${DEFAULTNET}' inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 echo "installing apps"
-yum -y install gcc net-tools bsdtar zip >/dev/null
+yum -y install gcc make wget net-tools bsdtar zip >/dev/null
 
 install_3proxy
 
 echo "working folder = /home/proxy-installer"
 WORKDIR="/home/proxy-installer"
 WORKDATA="${WORKDIR}/data.txt"
+DEFAULTNET=$(ip -o -4 route show to default | awk '{print $5}')
 mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s ifconfig.co)
 IP6=$(curl -6 -s ifconfig.co | cut -f1-4 -d':')
-
+echo "Default net interface = ${DEFAULTNET}"
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
 echo "How many proxy do you want to create? Example 500"
@@ -102,14 +105,20 @@ LAST_PORT=$(($FIRST_PORT + $COUNT))
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-chmod +x boot_*.sh /etc/rc.local
+chmod +x $WORKDIR/boot_*.sh /etc/rc.local
 
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
+
+cat >>/etc/sysctl.conf <<EOF
+fs.file-max=500000
+EOF
+
+sysctl -w fs.file-max=500000
 
 cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
-ulimit -n 2048
+ulimit -n 65536
 service 3proxy start
 EOF
 
@@ -117,4 +126,7 @@ bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-upload_proxy
+zip proxy.zip proxy.txt
+echo "Done! ${WORKDATA}"
+
+#upload_proxy
