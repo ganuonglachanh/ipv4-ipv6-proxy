@@ -21,6 +21,10 @@ install_3proxy() {
     cp src/3proxy /usr/local/etc/3proxy/bin/
     cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
     chmod +x /etc/init.d/3proxy
+    touch /usr/local/etc/3proxy/3proxy.pid
+    groupadd --gid 65535 3proxy
+    useradd --uid 65535 --gid 3proxy -s /bin/false -l -M 3proxy
+    chown 65535:65535 /usr/local/etc/3proxy/3proxy.pid
     chkconfig 3proxy on
     cd $WORKDIR
 }
@@ -28,6 +32,8 @@ install_3proxy() {
 gen_3proxy() {
     cat <<EOF
 daemon
+pidfile /usr/local/etc/3proxy/3proxy.pid
+nserver 8.8.8.8
 maxconn 500
 nscache 65536
 nscache6 65536
@@ -36,13 +42,14 @@ setgid 65535
 setuid 65535
 stacksize 262144
 flush
-auth strong
+authcache ip,user 60
+auth cache strong
 
 users $(awk -F "/" 'BEGIN{ORS="";} {print $1 ":CL:" $2 " "}' ${WORKDATA})
 
 $(awk -F "/" '{print "auth strong\n" \
 "allow " $1 "\n" \
-"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
+"socks -6 -n -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
 }
@@ -71,7 +78,7 @@ gen_data() {
 
 gen_iptables() {
     cat <<EOF
-    $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA}) 
+$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA}) 
 EOF
 }
 
@@ -80,6 +87,8 @@ gen_ifconfig() {
 $(awk -F "/" '{print "ifconfig '${DEFAULTNET}' inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
+#echo "Disable firewall"
+#systemctl stop firewalld && systemctl disable firewalld && systemctl stop 3proxy && systemctl disable 3proxy
 echo "installing apps"
 yum -y install gcc make wget net-tools bsdtar zip >/dev/null
 
@@ -114,6 +123,16 @@ fs.file-max=500000
 EOF
 
 sysctl -w fs.file-max=500000
+sysctl -p
+
+cat >>/etc/security/limits.conf <<EOF
+* soft nproc 65535
+* hard nproc 65535
+* soft nofile 65535
+* hard nofile 65535
+EOF
+
+
 
 cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
