@@ -57,7 +57,7 @@ bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-zip proxy.zip proxy.txt
+zip ${WORKDIR}/proxy.zip proxy.txt
 echo "Done! ${WORKDATA}"
 
 #upload_proxy
