@@ -1,3 +1,15 @@
+Update by **GaNuongLaChanh**
+- Centos 8
+- Update to use socks5: `curl -x socks5h://user:pass@yourip:10000 http://ip6only.me/api`.
+
+(Note: *you must set DNS by socks proxy: Firefox: Proxy DNS when using SOCKS V5*
+Set socksv5 in Firefox setting, using Foxyproxy extention will not work)
+
+- Update ulimit: you must **reboot** to take effect
+
+`bash <(curl -s "https://raw.githubusercontent.com/ganuonglachanh/ipv6_proxy/master/scripts/install.sh")`
+
+
 Redirect connections from different ports at one ipv4 address to unique random ipv6 address from \64 subnetwork. Based on 3proxy
 
 ![cover](cover.svg)
