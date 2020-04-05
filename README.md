@@ -8,7 +8,7 @@ Set socksv5 in Firefox setting, using Foxyproxy extention will not work)
 - Update ulimit: you must **reboot** to take effect
 
 ```
-curl -O "https://raw.githubusercontent.com/ganuonglachanh/ipv6_proxy/master/scripts/install.sh"
+curl -O "https://raw.githubusercontent.com/ganuonglachanh/ipv4-ipv6-proxy/master/scripts/install.sh"
 chmod +x ./install.sh
 ./install.sh
 ```
