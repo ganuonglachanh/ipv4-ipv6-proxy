@@ -1,6 +1,6 @@
 #!/bin/sh
 random() {
-	tr </dev/urandom -dc A-Za-z0-9 | head -c15
+	tr </dev/urandom -dc A-Za-z0-9 | head -c5
 	echo
 }
 
@@ -101,7 +101,7 @@ DEFAULTNET=$(ip -o -4 route show to default | awk '{print $5}')
 mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s ifconfig.co)
-IP6=$(curl -6 -s ifconfig.co | cut -f1-4 -d':')
+IP6=$(curl -6 -s http://ip6only.me/api/ | cut -f2 -d',' | cut -f1-4 -d':')
 echo "Default net interface = ${DEFAULTNET}"
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
@@ -110,9 +110,10 @@ read COUNT
 
 FIRST_PORT=10000
 LAST_PORT=$(($FIRST_PORT + $COUNT))
-
+firewall-cmd --zone=public --permanent --add-port ${FIRST_PORT}-${LAST_PORT}/tcp
+firewall-cmd --reload
 gen_data >$WORKDIR/data.txt
-gen_iptables >$WORKDIR/boot_iptables.sh
+#gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
 chmod +x $WORKDIR/boot_*.sh /etc/rc.local
 
@@ -135,7 +136,7 @@ EOF
 
 
 cat >>/etc/rc.local <<EOF
-bash ${WORKDIR}/boot_iptables.sh
+#bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 65536
 service 3proxy start
@@ -145,7 +146,7 @@ bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-zip proxy.zip proxy.txt
+zip ${WORKDIR}/proxy.zip ${WORKDATA}
 echo "Done! ${WORKDATA}"
 
 #upload_proxy
