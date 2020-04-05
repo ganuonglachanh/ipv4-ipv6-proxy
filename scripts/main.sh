@@ -12,7 +12,7 @@ DEFAULTNET=$(ip -o -4 route show to default | awk '{print $5}')
 mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s ifconfig.co)
-IP6=$(curl -6 -s http://ip6only.me/api/ | cut -f2 -d',')
+IP6=$(curl -6 -s http://ip6only.me/api/ | cut -f2 -d',' | cut -f1-4 -d':')
 echo "Default net interface = ${DEFAULTNET}"
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
