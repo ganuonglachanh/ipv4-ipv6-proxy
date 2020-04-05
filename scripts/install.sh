@@ -126,15 +126,6 @@ EOF
 sysctl -w fs.file-max=500000
 sysctl -p
 
-cat >>/etc/security/limits.conf <<EOF
-3proxy soft nproc 65536
-3proxy hard nproc 65536
-3proxy soft nofile 65536
-3proxy hard nofile 65536
-EOF
-
-
-
 cat >>/etc/rc.local <<EOF
 #bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
