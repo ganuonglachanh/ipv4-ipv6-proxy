@@ -5,7 +5,7 @@ Update by **GaNuongLaChanh**
 (Note: *you must set DNS by socks proxy: Firefox: Proxy DNS when using SOCKS V5*
 Set socksv5 in Firefox setting, using Foxyproxy extention will not work)
 
-- Update ulimit: you must **reboot** to take effect
+- **DO NOT** reboot server
 - **DO NOT** create more then **2900** proxies!!
 
 ```
