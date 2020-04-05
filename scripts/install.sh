@@ -127,10 +127,10 @@ sysctl -w fs.file-max=500000
 sysctl -p
 
 cat >>/etc/security/limits.conf <<EOF
-* soft nproc 65535
-* hard nproc 65535
-* soft nofile 65535
-* hard nofile 65535
+3proxy soft nproc 65536
+3proxy hard nproc 65536
+3proxy soft nofile 65536
+3proxy hard nofile 65536
 EOF
 
 
